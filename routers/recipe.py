@@ -40,7 +40,7 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
             return json.loads(cached_text)
       except Exception as cache_err:
         print(cache_err)
-        pass
+        return json.loads(cached_text)
     print("finding new ")
     
     try:
