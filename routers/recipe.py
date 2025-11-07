@@ -38,7 +38,8 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
             return await translate_recipes_json(cached_text, target_code)
           else:
             return json.loads(cached_text)
-      except Exception:
+      except Exception as cache_err:
+        print(cache_err)
         pass
     print("finding new ")
     
