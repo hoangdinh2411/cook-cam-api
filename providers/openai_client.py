@@ -1,5 +1,6 @@
 
 import asyncio
+import copy
 import json
 import random
 from typing import Optional
@@ -107,10 +108,25 @@ def build_constraints_block(
         "CONSTRAINTS:" + json.dumps(cons, ensure_ascii=False, separators=(",",":"))
     )
     
+async def strip_blocks_for_translate(full_obj:dict):
+    obj = copy.deepcopy(full_obj)
+    sidecar= {"nutrition":[]}
+    recipes= obj.get("recipes")or []
+    for r in recipes:
+        sidecar['nutrition'].append(r.pop("nutrition_per_serving",None))
+        
+    return obj, sidecar
+        
+async def restore_blocks_after_translate(obj:dict,sidecar:dict)->dict:
+    recipes= obj.get("recipes") or []
+    for i, r in enumerate(recipes):
+        r["nutrition_per_serving"]= sidecar["nutrition"][i] if i< len(sidecar["nutrition"]) else None
+        
+    return obj    
     
 async def translate_recipes_json(full_obj:dict, lang_code:str)->dict:
-
-    payload_json = json.dumps(full_obj, ensure_ascii=False, separators=(",", ":"))
+    to_translate, sidecar= await strip_blocks_for_translate(full_obj=full_obj)
+    payload_json = json.dumps(to_translate, ensure_ascii=False, separators=(",", ":"))
 
     content = (
         f"Translate all text values in this JSON to language code '{lang_code}'. "
@@ -119,29 +135,30 @@ async def translate_recipes_json(full_obj:dict, lang_code:str)->dict:
     )
 
     messages = [
-        {"role": "system", "content": "You are a precise translator. Return ONLY JSON. Keep keys, arrays, numbers unchanged."},
+        {"role": "system", "content": "You are a precise translator. Return ONLY JSON. Keep keys, arrays, numbers, null, true/false and None unchanged."},
         {"role": "user",   "content": content}
     ]
     
     r= _client.chat.completions.create(
-        model=OPENAI_RECIPES_MODEL,
-        messages=messages,
-        response_format={"type":"json_object"},
-        temperature=0,
-        top_p=0,
-        max_tokens=900
-    )
-    
+            model=OPENAI_RECIPES_MODEL,
+            messages=messages,
+            response_format={"type":"json_object"},
+            temperature=0,
+            top_p=0,
+            max_tokens=900
+        )
+        
     raw = r.choices[0].message.content or "{}"
    
     try:
-        return json.loads(raw)
+        translated = json.loads(raw)
     except json.JSONDecodeError as e:
         i = e.pos
         snippet = raw[max(0, i-60): i+60]
         print("JSON parse error at", i, "snippet:", snippet)
-        
         raise
+    translated= await restore_blocks_after_translate(translated, sidecar=sidecar)
+    return translated
     
 
 async def recipes_from_ingredients(ingredients_list:list[dict],constraints_dict:dict)->dict:

@@ -11,18 +11,23 @@ def _is_lang(text: str, target_code: str) -> bool:
 def enforce_language(full_obj: dict, target_code: str) -> bool:
     if not isinstance(full_obj, dict): return False
     hits, total = 0, 0
+    samples = []
     for r in full_obj.get("recipes", []):
-        for k in ("title",):
-            v = r.get(k)
-            if isinstance(v, str) and v.strip():
-                total += 1
-                hits += 1 if _is_lang(v, target_code) else 0
-        for s in r.get("steps", []):
+        t = r.get("title")
+        if isinstance(t, str) and t.strip():
+            samples.append(t.strip())
+        for s in r.get("steps", [])[:4]:
             if isinstance(s, str) and s.strip():
-                total += 1
-                if total <= 6:
-                    hits += 1 if _is_lang(s, target_code) else 0
-    return total == 0 or (hits / max(1, total) >= 0.6)
+                samples.append(s.strip())
+        if len(samples) >= 8:
+            break
+    if not samples:
+        return True
+    hits = sum(1 for s in samples if _is_lang(s, target_code))
+    ratio = hits / len(samples)
+    # debug:
+    # print(f"[lang] target={target_code} hits={hits}/{len(samples)} ratio={ratio:.2f} samples={samples[:3]}")
+    return ratio >= 0.6
 
 
 

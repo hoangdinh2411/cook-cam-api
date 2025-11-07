@@ -10,7 +10,7 @@ from utils.config import RECIPES_CACHE_TTL
 
 router = APIRouter()
 
-@router.post("/recipes", response_model=RecipesOut)
+@router.post("/recipes")
 async def get_recipes_from_ingredients(payload:RecipesIn):
     """
     Generate recipes from confirmed ingredients and user constraints.
@@ -30,21 +30,29 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
     cache_client = await get_redis()
     key = await recipes_key(ingredients_as_dict, constraints_as_dict)
     
-    cached_text = await cache_client.get(key)
-    if cached_text :
+    cached_raw = await cache_client.get(key)
+    if cached_raw :
       try:
           print("has cached")
-          if not enforce_language(cached_text,target_code=target_code):
-            translated_text= await translate_recipes_json(cached_text, target_code)
+          if isinstance(cached_raw, (bytes, bytearray, memoryview)):
+            cached_str = bytes(cached_raw).decode("utf-8")
+          else:
+            cached_str = cached_raw
+          try:
+            cached_obj = json.loads(cached_str)  # -> dict
+          except json.JSONDecodeError as e:
+            print("cache JSON decode failed:", e)
+            cached_obj = None
+          if enforce_language(cached_obj ,target_code=target_code):
+            return json.loads(cached_raw)
+          else:
+            translated_text= await translate_recipes_json(cached_obj, target_code)
             await cache_client.setex(key, RECIPES_CACHE_TTL, json.dumps(translated_text, ensure_ascii=False))
             return translated_text
-          else:
-            return json.loads(cached_text)
       except Exception as cache_err:
         print(cache_err)
-        return json.loads(cached_text)
+        return json.loads(cached_raw)
     print("finding new ")
-    
     try:
       provider_result = await recipes_from_ingredients(ingredients_as_dict, constraints_as_dict)
     except Exception as exc:

@@ -1,0 +1,16 @@
+{
+  "ingredients": [
+    { "name": "chicken", "approx_qty_grams": 500, "confidence": 0.95 , "candidates":null},
+    { "name": "onion", "approx_qty_grams": 180, "confidence": 0.92 , "candidates":null},
+    { "name": "peanuts", "approx_qty_grams": 80, "confidence": 0.9 , "candidates":null}
+  ],
+  "constraints": {
+    "cuisine": "Vietnamese",
+    "max_minutes": 30,
+    "servings": 2,
+    "allowed_methods": ["stek"],
+    "diet": "regular",
+    "allergies": [],
+    "output_lang": "vi"
+  }
+}
