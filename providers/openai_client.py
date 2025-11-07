@@ -109,19 +109,19 @@ def build_constraints_block(
     
     
 async def translate_recipes_json(full_obj:dict, lang_code:str)->dict:
-    messages=[
-        {
-            "role":"system",
-            "content":"You are a precise translator. Return ONLY JSON. Keep keys, arrays, numbers unchanged."
-        },
-        {
-            "role":"user",
-            "content": f"Translate all text values in this JSON to language code '{lang_code}'. "
-            "Do not change keys, structure, or numbers. Return ONLY the JSON.\n" +
-            json.dumps(full_obj, ensure_ascii=False, separators=(',',':'))
-        }
 
-    ]  
+    payload_json = json.dumps(full_obj, ensure_ascii=False, separators=(",", ":"))
+
+    content = (
+        f"Translate all text values in this JSON to language code '{lang_code}'. "
+        "Do not change keys, structure, or numbers. Return ONLY the JSON.\n"
+        + payload_json
+    )
+
+    messages = [
+        {"role": "system", "content": "You are a precise translator. Return ONLY JSON. Keep keys, arrays, numbers unchanged."},
+        {"role": "user",   "content": content}
+    ]
     
     r= _client.chat.completions.create(
         model=OPENAI_RECIPES_MODEL,
@@ -132,9 +132,14 @@ async def translate_recipes_json(full_obj:dict, lang_code:str)->dict:
         max_tokens=900
     )
     
+    raw = r.choices[0].message.content or "{}"
     try:
-        return json.loads(r.choices[0].message.content or {})
-    except json.JSONDecodeError:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        # In ra vùng lỗi để soi
+        i = e.pos
+        snippet = raw[max(0, i-60): i+60]
+        print("JSON parse error at", i, "snippet:", snippet)
         raise
     
 
