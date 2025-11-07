@@ -11,7 +11,7 @@ app.add_middleware(CORSMiddleware,
                    allow_headers=["*"]
                    )
 
-@app.get("/")
+@app.get("/health")
 def health():
     return "hello"
 
