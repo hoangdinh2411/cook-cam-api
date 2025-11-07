@@ -2,6 +2,7 @@
 import asyncio
 import json
 import random
+import re
 from typing import Optional
 import unicodedata
 from openai import APIError, OpenAI, RateLimitError
@@ -133,10 +134,14 @@ async def translate_recipes_json(full_obj:dict, lang_code:str)->dict:
     )
     
     raw = r.choices[0].message.content or "{}"
+    raw = re.sub(
+    r'"(kcal|protein_g|carb_g|fat_g)"\s*:\s*(?=[,\}])',
+    r'"\1": null',
+    raw
+        )
     try:
-        data = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError as e:
-        # In ra vùng lỗi để soi
         i = e.pos
         snippet = raw[max(0, i-60): i+60]
         print("JSON parse error at", i, "snippet:", snippet)
