@@ -1,0 +1,34 @@
+# render.yaml
+services:
+  - type: web
+    name: fastapi-recipes
+    env: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false          # set in Render dashboard
+      - key: OPENAI_VISION_MODEL
+        sync: false          # set in Render dashboard
+      - key: OPENAI_RECIPES_MODEL
+        sync: false          # set in Render dashboard
+      - key: REDIS_URL
+        sync: false          # set in Render dashboard
+      - key: RECIPES_CACHE_TTL
+        value: "86400"
+      - key: VISION_CACHE_TTL
+        value: "86400"
+      - key: MAX_IMAGE_BYTES
+        value: "2000000"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: recipes-redis
+          property: connectionString
+
+  - type: redis
+    name: recipes-redis
+    plan: free
