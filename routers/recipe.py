@@ -33,12 +33,15 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
     cached_text = await cache_client.get(key)
     if cached_text :
       try:
+          print("has cached")
           if not enforce_language(cached_text,target_code=target_code):
             return await translate_recipes_json(cached_text, target_code)
           else:
             return json.loads(cached_text)
       except Exception:
         pass
+    print("finding new ")
+    
     try:
       provider_result = await recipes_from_ingredients(ingredients_as_dict, constraints_as_dict)
     except Exception as exc:

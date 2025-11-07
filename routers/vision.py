@@ -32,6 +32,7 @@ async def vision (payload:VisionIn):
                 await r.delete(key)
 
     data_url = f"data:image/{mime};base64,{b64}"    
+    print("do a new vision")
     try:
         result = await vision_dataurl_to_ingredients(data_url)
     except Exception as e:
