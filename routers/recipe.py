@@ -35,7 +35,9 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
       try:
           print("has cached")
           if not enforce_language(cached_text,target_code=target_code):
-            return await translate_recipes_json(cached_text, target_code)
+            translated_text= await translate_recipes_json(cached_text, target_code)
+            await cache_client.setex(key, RECIPES_CACHE_TTL, json.dumps(translated_text, ensure_ascii=False))
+            return translated_text
           else:
             return json.loads(cached_text)
       except Exception as cache_err:

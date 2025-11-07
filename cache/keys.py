@@ -81,6 +81,8 @@ def _clean_constraints(c: dict[str, any]) -> dict[str, any]:
 
     if "allowed_methods" in c:
         out["allowed_methods"] = _to_list_str(c.get("allowed_methods"))
+    if "output_lang" in c:
+        out["output_lang"] = _to_list_str(c.get("output_lang"))
         
     for k in ("max_minutes", "servings"):
         v = c.get(k)
