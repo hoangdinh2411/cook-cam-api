@@ -33,7 +33,6 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
     cached_raw = await cache_client.get(key)
     if cached_raw :
       try:
-          print("has cached")
           if isinstance(cached_raw, (bytes, bytearray, memoryview)):
             cached_str = bytes(cached_raw).decode("utf-8")
           else:
@@ -41,7 +40,6 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
           try:
             cached_obj = json.loads(cached_str)  # -> dict
           except json.JSONDecodeError as e:
-            print("cache JSON decode failed:", e)
             cached_obj = None
           if enforce_language(cached_obj ,target_code=target_code):
             return json.loads(cached_raw)
@@ -50,9 +48,7 @@ async def get_recipes_from_ingredients(payload:RecipesIn):
             await cache_client.setex(key, RECIPES_CACHE_TTL, json.dumps(translated_text, ensure_ascii=False))
             return translated_text
       except Exception as cache_err:
-        print(cache_err)
         return json.loads(cached_raw)
-    print("finding new ")
     try:
       provider_result = await recipes_from_ingredients(ingredients_as_dict, constraints_as_dict)
     except Exception as exc:
