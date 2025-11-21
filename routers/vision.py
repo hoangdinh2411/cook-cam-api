@@ -19,6 +19,10 @@ ALLOW_IMAGE_MIMES={
 
 
 def validate_image_mime(m:str):
+    if m is None:
+        logger.debug("Missing mime")
+        raise HTTPException(status_code=400,
+                            detail="Missing mime")
     if m not in ALLOW_IMAGE_MIMES:
         logger.debug(f"Unsupported media type: {m or 'unknown'}. ")
         raise HTTPException(status_code=415,

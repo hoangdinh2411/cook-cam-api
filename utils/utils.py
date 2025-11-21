@@ -15,14 +15,11 @@ def split_data_url(data_url:str):
 def size_fromm_b64(b64:str)->int:
     return int(len(b64) *3 / 4)
 
-def normalize_name(name: str) -> str:
-    k = name.strip().lower()
-    return DICTIONARY.get(k, k)
  
 def dedup_and_merge(items):
     acc={}
     for it in items:
-        n = normalize_name(it.get("name",""))
+        n = it.get("name","")
         if not n: continue
         conf = float(it.get("confidence",0))
         qty= it.get("approx_qty_grams")
