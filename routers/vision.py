@@ -29,7 +29,7 @@ def validate_image_mime(m:str):
         logger.debug(f"Unsupported media type: {value}. ")
         raise HTTPException(status_code=415,
                             detail=f"Unsupported media type: {value}. "
-                            f"Allow: {", ".join(sorted(ALLOW_IMAGE_MIMES))}")
+                            f"Allow: {', '.join(sorted(ALLOW_IMAGE_MIMES))}")
     
 
 @router.post('/vision')
