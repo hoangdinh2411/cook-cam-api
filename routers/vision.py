@@ -20,7 +20,7 @@ ALLOW_IMAGE_MIMES={
 
 def validate_image_mime(m:str):
     if m not in ALLOW_IMAGE_MIMES:
-        logger.debug(f"Unsupported media type: {m or "unknown"}. ")
+        logger.debug(f"Unsupported media type: {m or 'unknown'}. ")
         raise HTTPException(status_code=415,
                             detail=f"Unsupported media type: {m or "unknown"}. "
                             f"Allow: {", ".join(sorted(ALLOW_IMAGE_MIMES))}")
