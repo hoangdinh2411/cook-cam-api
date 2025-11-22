@@ -1,9 +1,8 @@
 import logging
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from idna import encode
 from middlewares.error_logging import ErrorLoggingMiddleware
+from models.exception_handlers import general_exception_handler, http_exception_handler, value_exception_handler
 from routers.vision import router as vision_router
 from routers.recipe import router as recipe_router
 logging.basicConfig(filename="myapp.log", encoding="utf-8", level=logging.DEBUG,)
@@ -17,11 +16,14 @@ app = FastAPI()
 @app.get("/health")
 def health():
     return "hello"
+app.add_middleware(ErrorLoggingMiddleware)
+app.add_exception_handler(HTTPException,http_exception_handler)
+app.add_exception_handler(ValueError,value_exception_handler)
+app.add_exception_handler(Exception,general_exception_handler)
 
 app.include_router(vision_router)
 app.include_router(recipe_router)
 
-app.add_middleware(ErrorLoggingMiddleware)
 app.add_middleware(CORSMiddleware,
                    allow_origins=["*"],
                    allow_methods=["GET","POST","OPTIONS"],
